@@ -1,0 +1,31 @@
+Package: connected
+Title: Visualize and improve connectedness of factors in tables
+Version: 0.2
+Authors@R: 
+    person("Kevin", "Wright", , "kw.stat@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0617-8673"))
+Description: Visualize the connectedness of factors in two-way tables.
+  Perform two-way filtering to improve the degree of connectedness.
+  See Weeks & Williams (1964) <doi:10.1080/00401706.1964.10490188>.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+  grDevices,
+  lattice,
+  lfe,
+  reshape2,
+  stats
+Suggests:
+    agridat,
+    dplyr,
+    janitor,
+    knitr,
+    lme4,
+    lucid,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+LazyData: true
+RoxygenNote: 7.3.2
+Config/testthat/edition: 3

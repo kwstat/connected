@@ -1,2 +1,3 @@
 # connected
-Tools to visualize and fix connectedness in tables
+
+Tools to visualize and improve connectedness in tables

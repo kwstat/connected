@@ -1,0 +1,444 @@
+---
+title: "Introduction to the 'connected' package"
+author: "Kevin Wright"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to the 'connected' package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align="center",
+  fig.height = 6,
+  fig.width = 6
+)
+```
+
+# Introduction
+
+The `connected` package arose from our experience analyzing data with linear models and linear mixed models. Sometimes those models failed to converge, and when the reason for the convergence was investigated, it sometimes turned out to be either that that the data was not connected or else was weakly connected.
+
+The main functions in the `connected` package are:
+
+* `con_check()`
+* `con_view()`
+* `con_filter()`
+
+# Visualizing two-way connectedness with `con_view()`
+
+To illustrate the idea of connectedness, consider the following example data from Fernando et al. (1983) that is inspired by the cattle industry
+
+```{r setup}
+library(connected)
+data_fernando
+```
+
+There are 2 factors: genotype and herd. Each row represents one animal in a herd. Although this data does not have a response variable, we can simulate a response variable and then see if the data could be analyzed by a linear model with the 2 factors.
+
+```{r}
+set.seed(42)
+data_fernando <- transform(data_fernando, y = rnorm(nrow(data_fernando), mean=100))
+m1 <- lm(y ~ gen + herd, data=data_fernando)
+m1
+```
+
+While there are no warnings, looking at the model coefficients shows that the estimate of the effect for herd `H4` is not estimable. This happens because the model matrix is not full rank. To understand why, look at the following graphical view of the data in a levelplot:
+
+```{r}
+#| fig.height: 4
+#| fig.width: 4
+con_view(data_fernando, y ~ gen * herd, main="data_fernando")
+```
+
+The `con_view()` function does the following:
+
+* Plots a levelplot/heatmap of the two factors, with the cell color corresponding to the value of the response variable.
+* Counts the number of cells in each row and puts this count on the right axis. Column counts are added along the top axis.
+* Sorts the rows and columns (by default) according to clustering of the *incidence* matrix based on the presence/absence of data in each cell of the graph.
+* Checks for connectivity of the two factors. If the observations are NOT connected, then cells belonging to the same connected subset are identified with a number.
+
+This graphical view shows us that herds `H1` and `H3` have no levels of the genotype factor that are in common with herds `H2` and `H4`, so it makes sense that not all herd effects will be estimable.
+
+# Checking multi-way connectedness with `con_check()`
+
+The two-way heatmaps in the previous section are very useful to understand connectedness of two factors, but what if there are more than two factors?
+
+Here is a small example dataset from Eccleston and Russell (1975) with three factors that can represent a 4x4 row-column experiment with a treatment for each cell.
+
+```{r}
+data_eccleston
+```
+
+The treatment codes have both a letter and a number only because both have been used in previously-published scientific papers. Each treatment letter corresponds with one number and vice versa.  Re-arranging the treatments into the field layout of rows and columns is useful:
+
+```{r}
+## library(reshape2)
+## acast(data_eccleston, row~col, value.var='trt')
+##    1  2  3  4 
+##  1 A1 B2 E5 F6
+##  2 C3 D4 G7 H8
+##  3 H8 F6 A1 C3
+##  4 G7 E5 B2 D4
+```
+
+The 4x4 grid is completely filled, so the row and column factors are obviously connected. With a little bit of study, it can be seen that the columns are also connected via the treatments. For example treatment `A1` appears in columns 1 & 3, treatment `B2` connects columns 3 & 2, `D4` connects columns 2 & 4, and `C3` connects columns 4 & 1.  The connection of treatments and columns can be checked formally with the `con_check()` function:
+
+```{r}
+con_check(data_eccleston, ~ trt + col)
+```
+
+The vector of `1`s returned means that all observations of the dataframe are connected in group 1.
+
+Similarly, the rows are also connected via the treatments.
+```{r}
+con_check(data_eccleston, ~ trt + row)
+```
+
+
+
+However, if all 3 factors are considered at the same time, they are completely disconnected with each observation belonging to a separate group.
+
+```{r}
+con_check(data_eccleston, ~ trt + row + col)
+```
+
+If we attempted to fit a linear model using all 3 factors as predictors, there would be problems with estimability.
+```{r}
+set.seed(42)
+data_eccleston <- transform(data_eccleston,
+                            y = rnorm(nrow(data_eccleston), mean=100))
+m1 <- lm(y ~ trt + row + col, data=data_eccleston)
+m1
+```
+
+Another way to examine the stability of the model is to look at the reciprocal condition number of the model matrix, which is less than the machine precision, so it is numerically singular.
+
+```{r}
+X <- model.matrix(m1)
+rcond(X)
+.Machine$double.eps
+```
+
+# Improving connectedness with `con_filter()`
+
+Sometimes two factors of a dataframe can be weakly connected and we might want to remove those weak connections.
+
+## Example 1
+
+We construct a small example and use the `tabyl` function to display the data in a two-way table.
+
+```{r}
+tab <- data.frame(gen=c("G1","G1","G1","G1", "G2","G2","G2", "G3"),
+                  state=c("S1","S2","S3","S4", "S1","S2","S4", "S1"))
+library(janitor) # For tabyl
+tab %>% tabyl(state,gen)
+```
+
+In the two-way table it is easy to see that the `gen` factor level `G3` has only 1 cell connecting to the `state` factor. We might want to eliminate the column with genotype `G3`. The ordinary way to do this would be to use one of these approaches:
+```{r}
+subset(tab, gen != "G3") %>% tabyl(state,gen)
+dplyr::filter(tab, gen != "G3") %>% tabyl(state,gen)
+```
+
+We generalize the idea of filtering to a new two-way filtering using the `con_filter()` function. The easiest way to think about this function is with a two-way table as shown above, and then to define a threshold for the minimum number of connections between two factors.  For example, we might decide to only keep a level of `gen` if it appears in at least 2 `state`s. We use a formula syntax for this.
+
+```{r}
+# Read this as "2 state per gen"
+tab2 <- con_filter(tab, ~ 2 * state / gen)
+tab2 %>% tabyl(state,gen)
+```
+
+By default, the `con_filter()` function provides a bit of diagnostic information.
+
+After the filtering, notice that `state` `S3` only appears once and we decide that we only want to keep an individual `state` if it has at least 2 `gen`.
+```{r}
+con_filter(tab2, ~ 2 * gen / state) %>% tabyl(state, gen)
+```
+
+## Example 2 - Missing response values
+
+The R dataset `OrchardSprays` is an example of a Latin Square experiment with 8 rows, 8 columns, and 8 treatments. Suppose that during the experiment, half of the response variable data was lost. We simulate that:
+
+```{r}
+  set.seed(42)
+  orch <- OrchardSprays
+  orch[runif(nrow(orch)) > .5 , "decrease"] <- NA
+  head(orch)
+```
+
+In order to visualize the combinations of rows and columns that still have data, we have to remove the missing observations before constructing a table of cell counts:
+
+```{r}
+subset(orch, !is.na(decrease)) %>% tabyl(rowpos, colpos) 
+```
+
+The `con_filter()` formula syntax can include a response variable. If the response variable is specified, the data is first filtered to remove missing values in the response, and then the two-way filtering is performed. Suppose we want to have at least 2 observed values of `decrease` in each row and column
+```{r}
+# Read: decrease has at least 2 colpos per rowps
+orch2 <- con_filter(orch, decrease ~ 2 * colpos / rowpos)
+tabyl(orch2, rowpos, colpos) # Column 1 has only 1 observation
+
+# Read: decrease has at least 2 rowpos per colpos
+orch2 <- con_filter(orch2, decrease ~ 2 * rowpos / colpos)
+tabyl(orch2, rowpos, colpos)
+```
+
+The desired result has been achieved.
+
+## Example 3 - Concatenating two factors
+
+Sometimes you might want to combine two factors together before filtering.  Consider the following example with factor for genotype `gen`, `state`, and `year`. We simulate some random response data.
+
+```{r}
+library(connected)
+library(janitor)
+test1 <- matrix( c("G1", "IA", "2020", # gen has 1 state, 1 yr,
+                   "G2", "IA", "2020", # gen has 1 state, 2 yr
+                   "G2", "IA", "2021",
+                   "G3", "NE", "2020", # 2 states, 1 yr
+                   "G3", "IA", "2020",
+                   "G4", "KS", "2020", # state has 1 gen, 1 yr
+                   "G5", "MO", "2020", # state has 1 gen, 2yr
+                   "G5", "MO", "2021",
+                   "G6", "IL", "2020", # state has 2 gen, 1yr
+                   "G7", "IL", "2020",
+                   "G8", "AR", "2019", # year has 1 gen 1 state
+                   "G9", "IN", "2018", # year has 1 gen, 2 state
+                   "G9", "OH", "2018",
+                   "G10", "MN", "2017", # year has 2 gen, 1 state
+                   "G11", "MN", "2017",
+                   "G12", "MD", "2010", # gen has 2 state, 2 yr, 2 reps
+                   "G12", "MD", "2010",
+                   "G12", "GA", "2011",
+                   "G12", "GA", "2011"), byrow=TRUE, ncol=3)
+test1 <- as.data.frame(test1)
+colnames(test1) <- c("gen","state","year")
+
+set.seed(42)
+test1$y <- round( runif(nrow(test1)), 2)
+head(test1)
+```
+
+As shown in the previous sections, we can check/filter the `gen:state` and `gen:year` factors, but perhaps we are interested in fitting a model with the three-way interaction `gen:state:year`. One way to trim this type of data is to combine the `state:year` interaction into a single factor and then count the number `gen`otypes in that new factor. The `con_filter()` function can perform this concatenation of two factors automatically using the `:` operator.
+
+```{r}
+con_filter(test1, y ~ 2 * gen / state:year) |>
+  transform(stateyr=paste0(state,"_",year)) |>
+  tabyl(gen,stateyr)
+```
+
+Looking at the results, we can see that each column is one level of the new `state:year` factor and that each column has at least 2 `gen`otypes, which is what we asked for.
+
+If we ever want to see what data is dropped during the filtering process, the `returndropped=TRUE` argument can be used.
+
+```{r}
+con_filter(test1, y ~ 2 * gen / state:year, returndropped=TRUE)
+```
+
+# Example 4: Case study: Estimating variance components
+
+Sometimes the observations of a dataset may be connected, but some of the factor levels may have very weak connections and it might be a good idea to remove those weak connections.  For example, in the documentation of the `ASRtrials` package that is helpful for analysis of genotype-by-environment data, Gezan et al. (2022) write: "In general, we recommend that a minimum of 5 genotypes should be common between any pair of trials."  Ultimately, you have to decide how much connection you want between the factors.
+
+The following example shows how to use the `con_filter()` function  to remove some of the weak connections between levels of factors.
+
+In plant breeding, one of the things people like to do is look at how much of the variation in the data is explained by differences between genotypes, years, and locations, typically abbreviated GxYxL. In order to perform this calculation, there must be at least some locations that are repeated across years.
+
+The `agridat` package has a nice example dataset of barley testing in Minnesota. There are 6 locations across 49 years with 235 different genotypes. There are 69090 combinations of the 3 factors, but only 2083 combinations have yield values, so there is a great deal of sparsity in the data. Nonetheless, we can jump right in and try to fit a full mixed model with all combinations of the factors.
+
+```{r}
+library(agridat)
+library(dplyr)
+
+dat0 <- agridat::minnesota.barley.yield
+if(nrow(dat0) < 2083) stop("Please upgrade the agridat package.")
+dat0 <- mutate(dat0, gen=factor(gen), site=factor(site), year=factor(year))
+library(lme4)
+m0 <- lmer(yield ~ (1|gen) + (1|site) + (1|year) + 
+             (1|gen:site) + (1|gen:year) + (1|site:year) + (1|gen:site:year),
+           data=dat0)
+summary(m0)
+
+# Note, the asreml package gives the same estimates. Not shown.
+# library(asreml)
+# m0a <- asreml(yield ~ 1, data=dat0, random  = ~ gen*site*year, workspace="1GB")
+# summary(m0a)$varcomp
+```
+
+This analysis runs without any obvious problems and may be perfectly acceptable, but keeping in mind the comments about connectedness above, we may want to remove some of the data through two-way filtering.
+
+First, start with a two-way visualization of the sites and years.
+
+```{r}
+# Keep the original data in dat0 and pruned data in dat1
+dat1 <- dat0
+
+con_view(dat1, yield~site*year, cluster=FALSE,
+         xlab="site", ylab="year", main="Minnesota Barley")
+```
+
+From 1893 through 1917, barley testing only happened at the St. Paul site (near the University of Minnesota).  Since it is not possible to explain how much variation there is across locations when there is only 1 location, it makes sense to eliminate the data from those years with only 1 site.
+
+```{r}
+# Require 2 sites per year
+dat1 <- con_filter(dat1, yield ~ 2*site/year)
+con_view(dat1, yield~gen*year, cluster=FALSE,
+         xlab="genotype", ylab="year")
+```
+
+Looking across the top, there are some `1`s that tell us some genotypes were tested in only 1 year, so those are not really helping to estimate variation across years and we decide to drop those.
+
+```{r}
+# Require 2 year per gen
+dat1 <- con_filter(dat1, yield~ 2*year/gen)
+con_view(dat1, yield~gen*year, cluster=FALSE, xlab="gen", ylab="year")
+```
+
+After considering how genotypes are spread across years, we can also look at how genotypes are spread across sites.
+
+```{r}
+con_view(dat1, yield~gen*site, cluster=FALSE, xlab="genotype", ylab="site")
+```
+
+Again looking at the numbers across the top axis, some genotypes are tested in only 1 site, so we drop those.
+
+```{r}
+# Drop genotypes tested in only 1 site
+dat1 <- con_filter(dat1, yield~ 2*site/gen)
+con_view(dat1, yield~gen*site, cluster=FALSE, xlab="genotype", ylab="site")
+```
+
+We check the connectedness of each pair of factors.
+
+```{r}
+con_view(dat1, yield ~ gen*site, cluster=FALSE, xlab="gen", ylab="site")
+con_view(dat1, yield ~ gen*year, cluster=FALSE, xlab="gen", ylab="year")
+con_view(dat1, yield ~ site*year, cluster=FALSE, xlab="site", ylab="year")
+```
+
+The connectedness of genotype and year is still a bit weak, but the other pairs of factors have good connections, so we try to fit the variance components model again.
+
+```{r}
+library(lme4)
+m1 <- lmer(yield ~ (1|gen) + (1|site) + (1|year) + 
+          (1|gen:site) + (1|gen:year) + (1|site:year) + (1|gen:site:year), data=dat1)
+summary(m1)
+
+# asreml converges to the same estimated values, so lmer is just finnicky
+# m1a <- asreml(yield ~ 1, data=dat1, random  = ~ gen*site*year, workspace="1GB")
+# lucid::vc(m1a)
+```
+
+The `lmer` function fails to converge, but the variance components look reasonable and also `asreml` is giving the same estimates (not shown here), so there is probably some convergence criterion for `lmer` that is not quite satisfied but is essentially near the maximum of the likelihood.  Changing the convergence criteria might be helpful, but we can also try increasing the connectedness of genotype and year, since we noticed that there were some genotypes that were tested in only 2 years. Change that to require a minimum of 3 years of testing:
+
+```{r}
+# Require at least 3 year per genotype
+dat2 <- con_filter(dat1, yield ~ 3*year / gen)
+m2 <- lmer(yield ~ (1|gen) + (1|site) + (1|year) +
+             (1|gen:site) + (1|gen:year) + (1|site:year) + (1|gen:site:year),
+           data=dat2)
+summary(m2)
+
+# asreml gives the same estimated variance parameters. Not shown.
+# m2a <- asreml(yield ~ 1, data=dat2, random  = ~ gen*site*year, workspace="1GB")
+# summary(m2a)$varcomp
+```
+
+Now `lmer` converges without any warnings.
+
+We compare the estimated variance parameters from the initial model `m0` (n=2083 observations) with model `m1` and the final model `m2` (n=1252 observations). CAUTION: The `VarCorr` function re-orders the terms in the output, so be careful combining the two tables.
+
+```{r}
+library(lucid)
+full_join( select(as.data.frame(VarCorr(m0)), grp, vcov), 
+           select(as.data.frame(VarCorr(m1)), grp, vcov), 
+           by="grp", suffix=c(".0",".1")) %>%
+  full_join(select(as.data.frame(VarCorr(m2)), grp, vcov), 
+           by="grp", suffix=c(".0",".2")) %>% lucid
+```
+
+The biggest change in the variance components happens for `gen`, which decreases from about 46 to about 9. This is not particularly surprising. In the full dataset, some of the genotypes were tested in only a few trials. These genotypes could easily have been poorly performing or regional check varieties that were not serious candidates for advancement for further testing. In either case, these genotypes could have been more variable than the other genotypes in the data. We are speculating, but based on some degree of personal experience.
+
+The other thing to note is the similarity of the variance parameters from models `m1` and `m2`. The similarity strengthens our belief that while model `m1` failed to converge, it likely was near the optimum likelihood.
+
+# Appendix - Infrequently Asked Questions
+
+## 1. How to extract the sorted axis tick labels from the levelplot
+
+If you want to extract the sorted axis tick labels, assign the graphic to an object and extract the components of interest:
+
+```{r}
+library(connected)
+dat <- data_fernando
+dat <- transform(dat, y = rnorm(nrow(dat)))
+tmp <- con_view(dat, y ~ gen*herd)
+tmp$x.limits[[1]]
+tmp$y.limits[[1]]
+```
+
+## 2. How to create consistent axis tick labels across multiple datasets
+
+A user wanted to have the same axis tick labels across several different datasets, even though the datasets might have different factor levels.
+
+First we create two small datasets.  Note that only levels `G2` and `E2` are common to both datasets.
+
+```{r}
+dd1 <- data.frame(x=rep(c("E1","E2"),2),
+                  y=rep(c("G1","G2"), each=2),
+                  z1=c(1,2,1.5,2.5))
+dd2 <- data.frame(x=rep(c("E3","E2"),2),
+                  y=rep(c("G3","G2"), each=2),
+                  z2=c(3,4,3.5,4.5))
+dd1
+dd2
+```
+
+Next, create a reference dataframe that contains all of the factor levels from both `dd1` and `dd2`.
+
+```{r} 
+dd0 <- expand.grid(x=sort(unique(c(dd1$x, dd2$x))),
+                   y=sort(unique(c(dd1$y, dd2$y))) )
+```
+
+Merge the trait values into this dataframe. When plotting, be sure to use the `dropNA=FALSE` options so that factor levels without trait values are kept and use `cluster=FALSE` to prevent re-ordering
+
+```{r}
+#| fig.height: 3
+#| fig.width: 3
+dd0 <- merge(dd0, dd1, by=c("x","y"), all.x=TRUE)
+dd0 <- merge(dd0, dd2, by=c("x","y"), all.x=TRUE)
+library(connected)
+con_view(dd0, z1 ~ x * y, cluster=FALSE, dropNA=FALSE, main="dd1")
+con_view(dd0, z2 ~ x * y, cluster=FALSE, dropNA=FALSE, main="dd2")
+```
+
+## 3. How to view the axis labels and/or cell group numbers when there are many levels
+
+The best strategy is to send the graphical output to a pdf file and experiment with the `cex` arguments of `con_view()` to reduce over-plotting. Then open the file in a good pdf viewer that can zoom and search for text.
+
+# Bibliography
+
+Eccleston, J. and K. Russell (1975).
+Connectedness and orthogonality in multi-factor designs.
+Biometrika, 62, 341-345.
+https://doi.org/10.1093/biomet/62.2.341
+
+Fernando, Rohan and D. Gianola and M. Grossman (1983).
+Identifying All Connected Subsets In A Two-Way Classification Without Interaction.
+J. of Dairy Science, 66, 1399-1402. Table 1.
+https://doi.org/10.3168/jds.S0022-0302(83)81951-1
+
+Gezan, Salvador A. and Giovanni Galli and Darren Murray (2022).
+User’s Manual for ASRtriala v. 1.0.0.
+Published by VSNi.
+https://vsni.co.uk/resources/free-software/asrtriala/
+
+Piepho, Hans-Peter. (1994)
+Missing observations in the analysis of stability.
+Heredity, 72, 141–145.
+https://doi.org/10.1038/hdy.1994.20
+
+

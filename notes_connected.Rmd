@@ -1,0 +1,312 @@
+
+todo 
+Search for "connectivity between trials"
+Search for "connectivity between environments"
+Search for "connectivity between locations"
+https://www.google.com/search?client=firefox-b-1-d&q=%22connectivity+between+trials%22
+
+
+## Google searches
+"mixed model" "connectivity between" -brain
+
+## X1 local searches
+"connectedness"
+"data cleaning"
+"deleting rows"
+"highly unbalanced"
+
+# Papers about connectivity
+
+Eccleston, J. and K. Russell (1975).
+Connectedness and orthogonality in multi-factor designs.
+Biometrika, 62, 341-345. Table 1, design 1.
+https://doi.org/10.1093/biomet/62.2.341
+
+
+Eccleston & Hedayat (1974).
+On the theory of connected designs: characterization and optimality.
+Ann. Statistiics, 2, 1238-55.
+https://www.jstor.org/stable/2958341
+
+
+Eccleston, J. A. (1978).
+Variance Components and Disconnected Data.
+Biometrics, 34(3), 479.
+http://www.jstor.org/stable/2530612
+Small example with 2 disconnected groups
+
+
+Fernando 1983.
+Identifying all connected subsets in a two-way classification without interaction.
+https://doi.org/10.3168/jds.S0022-0302(83)81951-1
+https://www.journalofdairyscience.org/article/S0022-0302(83)81951-1/pdf
+
+
+Foulley 1992
+A criterion for measuring the degree of connectedness in linear models of genetic evaluation
+https://www.gse-journal.org/articles/gse/pdf/1992/04/GSE_0999-193X_1992_24_4_ART0003.pdf
+
+
+Laloë, D., Phocas, F. & Ménissier, F. (1996).
+Considerations on measures of precision and connectedness in mixed linear models of genetic evaluation.
+Genet Sel Evol 28, 359 (1996).
+https://doi.org/10.1186/1297-9686-28-4-359
+Uses Prediction Error Variance to estimate connectedness.
+
+
+Petersen, P (1978).
+A test for connectedness fitted for the two-way blup-sire evaluation.
+Acta Agriculturae Scandinavica, 28, 360-362.
+https://doi.org/10.1080/00015127809435193
+
+
+Tosh, J. J., and J. W. Wilton. (1990).
+Degree of connectedness in mixed models.
+Proceedings of the 4th World Congress on Genetics applied to Livestock Production, 480-483.
+Page 481.
+
+
+Weeks (1964).
+A Note on the Determination of Connectedness in an N-Way Cross Classification
+https://www.tandfonline.com/doi/abs/10.1080/00401706.1964.10490188
+
+
+# Papers with data filtering
+
+Krause, Matheus D, Kaio O G Dias, Asheesh K Singh, William D Beavis
+Using soybean historical field trial data to study genotype by environment variation and identify mega-environments with the integration of genetic and non-genetic factors.
+bioRxiv 2022.04.11.487885
+https://doi.org/10.1101/2022.04.11.487885 
+
+
+Yan, W.,  D. Pageau, J. Frégeau-Reid, and J. Durand. 2011.
+Assessing the representativeness and repeatability of test locations for genotype evaluation. 
+Crop Sci. 51:1603-1610 
+
+
+# Papers about METs
+
+Li, Yongjun, Heidi S. Dungey, Mike Carson, Sue Carson. (2018).
+Genotype by environment interaction for growth and Dothistroma resistance and clonal connectivity between environments in radiata pine in New Zealand and Australia.
+PLoS One. 2018 Oct 12; 13(10):e0205402. https://doi.org/10.1371/journal.pone.0205402.
+https://pdfs.semanticscholar.org/a05c/4c21d7125723f4bd17850b54b89d7564fd1c.pdf
+https://pubmed.ncbi.nlm.nih.gov/30312360/
+"When designing clonal trials for use in multiple environments for accurately estimating the level of G×E, if the resource for creating connectivity between environments is limited, at least 30% of the clones need to be in common between environments. "
+
+
+Lisle, Chris. (2018).
+Varietal connectivity: Does it affect the accuracy of results from a multi-environment trial analysis?
+https://bpb-ap-se2.wpmucdn.com/blogs.auckland.ac.nz/dist/1/411/files/2018/12/3_Lisle_Rotorua_AASC2018-2glbfho.pdf
+
+
+Smith 2014.
+Factor analytic mixed models for the provision of grower information...
+
+
+# Skimmed
+
+Birkes, D., Yadolah Dodge, and Justus Seely (1976).
+Spanning Sets For Estimable Contrasts in Classification Models.
+The Annals of Statistics, 4, 86-107.
+https://doi.org/10.1214/aos/1176343349
+
+Bose (1947).
+The design of experiments.
+Proc Indian Sci. Congr. 34, 1-25.
+
+Haipeng Yu, Matthew L Spangler, Ronald M Lewis, Gota Morota (2018).
+Do stronger measures of genomic connectedness enhance prediction accuracies across management units?
+Journal of Animal Science, Volume 96, Issue 11, November 2018, Pages 4490–4500.
+https://doi.org/10.1093/jas/sky316
+
+Shah & Dodge (1977).
+On the connectedness of designs.
+
+
+```{r}
+## ---------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
+
+# Godolphin example 2
+libs(tibble)
+data_butz <- tribble(~f1, ~f2, ~f3, ~f4, ~f5, ~f6,
+                     1, 1, 1, 1, 1, 3,
+                     1, 1, 1, 1, 1, 5, 
+                     1, 1, 1, 1, 2, 7, 
+                     1, 1, 1, 2, 1, 12, 
+                     1, 1, 2, 1, 1, 2,
+
+                     1, 1, 2, 2, 1, 11, 
+                     1, 2, 1, 1, 1, 4, 
+                     1, 2, 1, 2, 1, 5, 
+                     1, 2, 2, 1, 1, 12, 
+                     1, 2, 2, 2, 1, 7,
+
+                     2, 1, 1, 1, 1, 9, 
+                     2, 1, 2, 1, 1, 8, 
+                     2, 1, 2, 2, 1, 7, 
+                     2, 2, 1, 1, 1, 10, 
+                     2, 2, 1, 2, 1, 1,
+
+                     2, 2, 2, 1, 1, 2, 
+                     2, 2, 2, 2, 1, 1, 
+                     3, 1, 1, 1, 1, 6, 
+                     3, 1, 1, 2, 1, 7, 
+                     3, 2, 1, 1, 1, 5)
+data_butz <- transform(data_butz,
+                       f1=factor(f1), f2=factor(f2), f3=factor(f3),
+                       f4=factor(f4), f5=factor(f5), f6=factor(f6) )
+with(data_butz, compfactor(list(f1,f2,f3,f4,f5,f6))) # 1 group, Godolphin says "completely connected"
+with(data_butz, compfactor(list(f1,f2,f3,f4,f5,f6), WW=TRUE) ) #  disjoint
+## ---------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
+
+# Birkes, Dodge, & Seely 1976
+
+Four-factor Graeco–Latin square with two missing cells.
+
+Birkes Example 2.
+Godolphin Example 3, figure 2, p 738
+data_birkes <- data.frame(
+                 row=factor(c(1,1,1, 2,2,2,2, 3,3,3, 4,4,4,4)),
+                 col=factor(c(2,3,4, 1,2,3,4, 1,3,4, 1,2,3,4)),
+                 latin=factor(c('B','C','D', 'B','A','D','C', 'C','A','B', 'D','C','B','A')),
+                 greek=factor(c('b','g','d', 'g','d','a','b', 'd','b','a', 'b','a','d','g'))
+                 )
+data_birkes
+
+Godolphin p 6 says it is disconnected
+14 obs, 14 groups, complete disconnected
+with(data_birkes, lfe::compfactor(list(row,col,latin,greek))) # 1 group
+with(data_birkes, lfe::compfactor(list(row,col,latin,greek), WW=TRUE)) # 14 groups
+libs(reshape2)
+libs(dplyr)
+data_birkes %>% mutate(trt = paste0(latin,"_",greek)) %>% dcast(row~col, value.var="trt")
+
+
+## ---------------------------------------------------------------------------
+
+# Eccleston example 2
+
+require(lfe) # compfactor
+# pairwise connected
+
+
+# Table 2
+eccleston21 <- data.frame(y=rnorm(16),
+                        row=factor(c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)),
+                        col=factor(c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4)),
+                        trt=factor(c(1,2,5,6, 3,4,7,8, 7,6,2,3, 5,8,4,1)))
+# Each pair of factors is connected
+with(eccleston21, lfe::compfactor(list(row,trt), WW=TRUE))
+with(eccleston21, lfe::compfactor(list(col,trt), WW=TRUE))
+with(eccleston21, lfe::compfactor(list(row,col), WW=TRUE))
+with(eccleston21, lfe::compfactor(list(row,col,trt), WW=TRUE))
+
+## ---------------------------------------------------------------------------
+# Foulley, 2 groups
+
+# Table 13.1
+foulley <- data.frame(sire=factor(c(1,1,1, 2,2, 3,3,3, 4,4, 5, 6,6)),
+                      herd=factor(c(1,2,5, 3,6, 3,4,6, 1,5, 4, 2,5))
+                      )
+with(foulley, lfe::compfactor(list(sire,herd), WW=TRUE))
+
+## ---------------------------------------------------------------------------
+
+# Daniel Gianola, Keith Hammond
+# Advances in Statistical Methods for Genetic Improvement of Livestock
+# https://books.google.com/books?id=UfDvCAAAQBAJ&pg=PA288
+
+# Table 13.1 p 284
+# There are 2 groups on p 288
+data_gianola1 <- data.frame(
+  sire=factor(c(1,1,1, 2,2, 3,3,3, 4,4, 5, 6,6)),
+  herd=factor(c(1,2,5, 3,6, 3,4,6, 1,5, 4, 2,5))
+  )
+data_gianola1  
+with(data_gianola1, compfactor(list(sire,herd))) # two groups 
+              
+# Table 13.3 p 288. Same data as Eccleston & Russell 1975.
+data_gianola2 <- data.frame(
+  row=factor(rep(1:4, each=4)),
+  col=factor(rep(1:4, 4)),
+  trt=factor(c("A","B","E","F","C","D","G","H","H","F","A","C","G","E","B","D"))
+)
+data_gianola2
+
+# Page 289 says the factors in Table 13.3 are pairwise connected, although the entire design is disconnected
+with(data_gianola2, compfactor(list(row,trt)))
+with(data_gianola2, compfactor(list(col,trt)))
+with(data_gianola2, compfactor(list(row,col)))
+with(data_gianola2, compfactor(list(row,col,trt)) ) # says connected
+with(data_gianola2, compfactor(list(row,col,trt), WW=TRUE)) # says disconnected
+
+## ---------------------------------------------------------------------------
+
+Found in Godolphin example 4
+
+Eccleston Russell (1977)
+data_eccleston4a <- data.frame(
+  layer=factor(c(1,1, 1,1, 1,1, 1,1,  2,2, 2,2, 2,2, 2,2)),
+  col=factor(c(1,2, 1,2, 3,4, 3,4,  1,2, 1,2, 3,4, 3,4)),
+  row=factor(c(1,1, 2,2, 3,3, 4,4,  1,1, 2,2, 3,3, 4,4)),
+  trt=factor(c(1,2, 2,1, 3,4, 4,3,  5,6, 6,5, 7,8, 8,7))
+)
+data_eccleston4a
+with(data_eccleston4a, compfactor(list(layer,row,col,trt), WW=TRUE)) # disconnected
+
+data_eccleston4b <- data.frame(
+  layer=factor(c(1,1, 1,1, 1,1, 1,1,  2,2, 2,2, 2,2, 2,2)),
+  col=factor(c(1,2, 1,2, 3,4, 3,4,  1,2, 1,2, 3,4, 3,4)),
+  row=factor(c(1,1, 2,2, 3,3, 4,4,  1,1, 2,2, 3,3, 4,4)),
+  trt=factor(c(1,2, 5,4, 1,2, 4,3,  3,6, 6,5, 7,8, 8,7))
+)
+data_eccleston4b
+with(data_eccleston4b, compfactor(list(layer,row,col,trt), WW=TRUE)) # disconnected
+
+# ----------------------------------------------------------------------------
+
+J. D. Godolphin (2013).
+On the Connectivity Problem for m-Way Designs.
+Journal of Statistical Theory and Practice, 7:4, 732-744,
+https://doi.org/10.1080/15598608.2013.782193
+
+# Srivastava and Anderson Four Factor Design
+# Godolphin p. 735, "it is concluded that this design is completely connected
+# and therefore all linear contrasts are estimable
+set.seed(42)
+data_srivastava <- data.frame(
+  y = round(runif(48), 3),
+  row=factor(rep(1:4,12)),
+  col=factor(rep(1:6, each=8)),
+  letter=factor(c("F","E","B","A","D","C","H","G","D","C","H","G","F","E","B","A","H","A","D","E","B","G","F","C","B","G","F","C","H","A","D","E","C","D","A","B","E","F","G","H","E","F","G","H","C","D","A","B")),
+  num=factor(c(10,9,1,1,5,5,10,9,12,11,7,11,3,3,12,7,12,9,4,8,8,4,12,9,10,6,6,2,2,11,10,11,3,3,4,2,2,4,1,1,5,5,7,8,8,6,6,7))
+)
+data_srivastava
+
+# I thought this would identify 1 connected group, but instead shows
+# 48 groups, ie complete disconnected ???
+with(data_srivastava, compfactor(list(row, col, letter, num) , WW=TRUE))
+
+
+## ---------------------------------------------------------------------------
+
+Schaeffer, L. R. (1975)
+Disconnectedness and Variance Component Estimation.
+Biometrics, 31(4), 969. doi:10.2307/2529824 
+
+data_schaeffer <- data.frame(
+  sire=factor(c(1,1, 2,2, 3, 4, 5, 6,6,6,6,6,6,6,6, 7,7,7,7, 8, 9,9, 10,10,10)),
+  herd=factor(c(1,2, 1,2, 3, 3, 4, 5,6,7,8,9,10,11,12, 6,8,10,12, 6, 7,8, 9,10,11))
+)
+data_schaeffer
+
+4 groups match Schaeffer p 971
+cbind(data_schaeffer,
+      .group=as.numeric(with(data_schaeffer, compfactor(list(sire,herd), WW=TRUE)))) # 2 groups, matches Tosh
+
+## ---------------------------------------------------------------------------
+
+
+```
