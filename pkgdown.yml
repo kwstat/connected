@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   introduction_to_the_connected_package: introduction_to_the_connected_package.html
-last_built: 2025-02-04T16:10Z
+last_built: 2025-02-04T18:28Z
 urls:
   reference: https://kwstat.github.io/connected/reference
   article: https://kwstat.github.io/connected/articles
