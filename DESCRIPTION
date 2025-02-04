@@ -1,5 +1,5 @@
 Package: connected
-Title: Visualize and improve connectedness of factors in tables
+Title: Visualize and Improve Connectedness of Factors in Tables
 Version: 0.2
 Authors@R: 
     person("Kevin", "Wright", , "kw.stat@gmail.com", role = c("aut", "cre"),
@@ -7,9 +7,11 @@ Authors@R:
 Description: Visualize the connectedness of factors in two-way tables.
   Perform two-way filtering to improve the degree of connectedness.
   See Weeks & Williams (1964) <doi:10.1080/00401706.1964.10490188>.
-License: GPL (>= 3)
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
+Depends: 
+    R (>= 4.1.0)
 Imports:
   grDevices,
   lattice,
@@ -29,3 +31,4 @@ VignetteBuilder: knitr
 LazyData: true
 RoxygenNote: 7.3.2
 Config/testthat/edition: 3
+URL: https://kwstat.github.io/connected/
