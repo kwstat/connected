@@ -1,6 +1,6 @@
 Package: connected
 Title: Visualize and Improve Connectedness of Factors in Tables
-Version: 0.2
+Version: 1.0
 Authors@R: 
     person("Kevin", "Wright", , "kw.stat@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0617-8673"))
