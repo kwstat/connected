@@ -2,13 +2,12 @@
 % Please edit documentation in R/functions.R
 \name{con_view}
 \alias{con_view}
-\title{View connectedness of two factors in a dataframe with a levelplot}
+\title{View connectedness of two factors in a dataframe using a levelplot}
 \usage{
 con_view(
   data,
   formula,
   fun.aggregate = mean,
-  na.rm = TRUE,
   xlab = "",
   ylab = "",
   cex.num = 0.75,
@@ -21,13 +20,12 @@ con_view(
 )
 }
 \arguments{
-\item{data}{Name of a data.frame}
+\item{data}{A dataframe}
 
-\item{formula}{A formula like \code{yield ~ fx*fy}}
+\item{formula}{A formula with two (or more) factor names in the dataframe
+like \code{yield ~ f1 *f2}}
 
 \item{fun.aggregate}{The function to use for aggregating data in cells. Default is mean.}
-
-\item{na.rm}{Should NA values be removed? Default is TRUE.}
 
 \item{xlab}{Label for x axis}
 
@@ -41,14 +39,18 @@ con_view(
 
 \item{col.regions}{Function for color regions. Default RedGrayBlue.}
 
-\item{cluster}{If "incidence", cluster rows and columns by the incidence matrix.}
+\item{cluster}{If "incidence", cluster rows and columns by the
+incidence matrix. If FALSE, no clustering is performed.}
 
 \item{dropNA}{If TRUE, observed data that are \code{NA} will be dropped.}
 
-\item{...}{Other parameters.}
+\item{...}{Other parameters passed to the levelplot() function.}
+}
+\value{
+A lattice graphics object
 }
 \description{
-If there is replication for the treatment combination cells in a2
+If there is replication for the treatment combination cells in a
 two-way table, the replications are averaged together (or counted)
 before constructing the heatmap.
 
@@ -59,9 +61,15 @@ set.  If not, the data is divided into connected subsets and the subset
 group number is shown within each cell.
 
 By default, missing values in the response are deleted.
+
+Factor levels are shown along the left and bottom sides.
+
+The number of cells in each column/row is shown along the top/right sides.
+
+If the 2 factors are disconnected, the group membership ID is shown in
+each cell.
 }
 \examples{
-
 require(lattice)
 bar = transform(lattice::barley, env=factor(paste(site,year)))
 set.seed(123)

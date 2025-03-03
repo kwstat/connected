@@ -11,7 +11,14 @@ Tools to visualize and improve connectedness of factors in data
 
 ## Key features
 
-* Simple to use.
+Consistent function design:
+
+* con_check(data, y ~ A + B) - Identify connected groups of factors.
+* con_concur(data, y ~ A / B) - Plot concurrence matrix of two factors.
+* con_filter(data, y ~ 2 * A / B) - Perform 2-factor filtering of data. Provide verbose output (similar to tidylog package).
+* con_view(data, y ~ A + B) - View 2-way heatmap of factors, identify connected groups.
+
+If there are missing values in the response variable `y`, the observations with missing values are deleted.
 
 ## Installation
 
@@ -27,73 +34,71 @@ devtools::install_github("kwstat/connected")
 
 ## Usage
 
-Check connectedness of multiple factors in a dataframe:
+1. Check connectedness of multiple factors in a dataframe:
 
 ```R
 library(connected)
 
-# The 'row' and 'col' factors ARE connected in one group
-con_check(data_eccleston, ~ row + col)
-#  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-
-# But all three factors are COMPLETELY disconnected into 16 groups.
-con_check(data_eccleston, ~ row + col + trt)
-#  [1] 16 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+# The 'class' and 'student' factors are disconnected in 2 groups
+R> con_check(data_student, test1 ~ class + student)
+# [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2
 ```
 
-Visualize connectedness of two factors.  The cells with "1" and the cells with "2" are two disjoint groups.
+2. Visualize connectedness of two factors.  The cells with "1" and the cells with "2" are two disjoint groups.
 
 ```R
 library(connected)
-set.seed(42)
-data_fernando <- transform(data_fernando, 
-                           y = rnorm(nrow(data_fernando),mean=100))
-con_view(data_fernando, y ~ gen * herd, main="data_fernando")
+con_view(data_student, test1~student*class, main="test1", xlab="student", ylab="class")
 ```
 
-![data_fernando](man/figures/data_fernando_view.png)
+![data_student](man/figures/data_student_view.png)
 
-Improve connectedness of two factors with two-way filtering
+3. Improve connectedness of two factors with two-way filtering
 
 ```R
 library(connected)
-tab <- data.frame(gen=c("G1","G1","G1","G1", "G2","G2","G2", "G3"),
-                  state=c("S1","S2","S3","S4", "S1","S2","S4", "S1"))
-                    gen state
-tab
-# 1  G1    S1
-# 2  G1    S2
-# 3  G1    S3
-# 4  G1    S4
-# 5  G2    S1
-# 6  G2    S2
-# 7  G2    S4
-# 8  G3    S1
-
 library(janitor) # For tabyl
 
-tab %>% tabyl(state,gen)
-# state G1 G2 G3
-#    S1  1  1  1
-#    S2  1  1  0
-#    S3  1  0  0
-#    S4  1  1  0
+data_student |> 
+  tabyl(student,class)
+# student art chem hort math phys weld
+#       A   1    1    0    1    1    0
+#       B   2    1    0    1    1    0
+#       C   1    1    0    1    1    0
+#       D   1    1    0    1    1    0
+#       E   1    0    0    0    0    0
+#       F   0    1    0    1    1    0
+#       G   0    1    0    1    1    0
+#       H   0    1    0    1    1    0
+#       I   0    1    0    1    1    0
+#       J   1    1    0    0    1    0
+#       K   1    1    0    1    1    0
+#       L   0    0    1    0    0    1
+#       M   0    0    1    0    0    1
 
-# Now subset the data. Keep only states that have at least 2 genotypes.
-
-# Read this as "2 state per gen"
-tab2 <- con_filter(tab, ~ 2 * state / gen)
-# Dropping these 1 of 3 levels of gen:
-# [1] "G3"
-# Deleted 1 of 8 rows of data.
+con_filter(data_student, test1 ~ 7*student/class) |>
+  tabyl(student,class)
+# Dropping these 3 of 6 levels of class:
+# [1] "art"  "hort" "weld"
+# Deleted 11 of 35 rows of data.
+# student chem math phys
+#       A    1    1    1
+#       B    1    1    1
+#       C    1    1    1
+#       F    1    1    1
+#       G    1    1    1
+#       H    1    1    1
+#       I    1    1    1
+#       J    1    0    1
+#       K    0    1    0
 # Warning message:
-# In con_filter(tab, ~2 * state/gen) : Some state have only 1 gen.
-
-tab2 %>% tabyl(state,gen)
-# state G1 G2
-#    S1  1  1
-#    S2  1  1
-#    S3  1  0
-#    S4  1  1
-
+# In con_filter(data_student, test1 ~ 7 * student/class) :
+#   Some student have only 1 class.
 ```
+
+4. View a concurrence matrix of two factors
+```R
+# Number of concurrent students for each pair of classes
+con_concur(data_student, test1 ~ student/ class)
+```
+![data_student](man/figures/data_student_concur.png){width=5in}

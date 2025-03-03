@@ -1,22 +1,10 @@
 # functions.R
 
-# Add con_pairs function
-# Maybe call it con_concurrence or con_concur
+# functions: con_check, con_concur, con_filter, con_view
 
 # Idea: allow con_view to work without a response variable. Maybe by coloring all cells the same color?
 
-# functions con_check, con_filter, con_view
-
 # Idea cluster only 1 of the 2 directions
-
-## group_by(dat, gen,site) %>% summarize(nyr=length(unique(yr))) %>% print(n=200)
-## group_by(dat, gen,site) %>% summarize(nyr=length(unique(yr))) %>% filter(nyr <= 1) %>% print(n=200)
-
-## group_by(dat, site, yr) %>% summarize(ngen=length(unique(gen))) %>% print(n=200)
-## group_by(dat, site, yr) %>% summarize(ngen=length(unique(gen))) %>% filter(ngen <= 1) %>% print(n=200)
-
-## group_by(dat, gen, yr) %>% summarize(nsite=length(unique(site))) %>% print(n=250)
-## group_by(dat, gen, yr) %>% summarize(nsite=length(unique(site))) %>% filter(nsite <= 1) %>% print(n=250)
 
 ## ---------------------------------------------------------------------------
 
@@ -31,53 +19,55 @@ RedGrayBlue <- colorRampPalette(c("firebrick", "lightgray", "#375997"))
 #' Multiple factors in a dataframe are said to be connected if a model matrix
 #' based on those factors is full rank.
 #'
-#' This function provides a formula interface to the lfe::compfactor function
-#' to check for connectedness.
+#' This function provides a formula interface to the lfe::compfactor() function
+#' to check for connectedness of the factors.
 #'
 #' @param data A dataframe
 #' 
-#' @param formula A formula with multiple factor names in the dataframe.
+#' @param formula A formula with multiple factor names in the dataframe,
+#' like \code{y ~ f1 + f2 + f3}
 #' 
-#' @param WW Pass-through argument to `compfactor`.
+#' @param WW Pass-through argument to `compfactor`
+#'
+#' @param dropNA If TRUE, observed data that are `NA` will be dropped.
 #' 
 #' @return A vector with integers representing the group membership of each observation.
 #' 
 #' @author Kevin Wright
 #' 
 #' @examples 
-#' \dontrun{
 #' # In the data_eccleston dataframe, each pair of factors is connected.
 #' con_check(data_eccleston, ~ row + trt)
 #' con_check(data_eccleston, ~ col + trt)
 #' con_check(data_eccleston, ~ row + col)
 #' # But all three factors are COMPLETELY disconnected into 16 groups.
 #' con_check(data_eccleston, ~ row + col + trt)
-#' }
 #' 
 #' @references 
 #' None
 #' 
 #' @export 
-con_check <- function(data, formula, WW=TRUE) {
-  
+con_check <- function(data=NULL, formula=NULL, WW=TRUE, dropNA=TRUE) {
   formula <- deparse(formula)
+  .resp <- trimws( strsplit(formula, "~")[[1]][1] ) # left of tilde
   rhs <- strsplit(formula, "~")[[1]][2] # right of tilde
+  factor_vars <- trimws( strsplit(rhs, "[+*]")[[1]] )
 
-  factor_vec <- trimws( strsplit(rhs, "[+*]")[[1]] )
-
-  expr_string <- paste0("list(", paste(factor_vec, collapse = ","), ")")
-  expr_string <- paste0("with(data, lfe::compfactor(", expr_string, ", WW=TRUE))")
-  out <- eval(parse(text=expr_string))
+  # If there is a response, drop rows that have missing values in response
+  if(.resp != "" & dropNA) data = data[ !is.na(data[[.resp]]), ]
+  
+  # Make sure the data are factors
+  out <- lfe::compfactor(lapply(data[factor_vars], as.factor), WW=TRUE)
   
   return(out)
 }
 
 ## ---------------------------------------------------------------------------
 
-#' View connectedness of two factors in a dataframe with a levelplot
+#' @title View connectedness of two factors in a dataframe using a levelplot
 #'
 #' @description
-#' If there is replication for the treatment combination cells in a2
+#' If there is replication for the treatment combination cells in a
 #' two-way table, the replications are averaged together (or counted)
 #' before constructing the heatmap.
 #' 
@@ -89,13 +79,19 @@ con_check <- function(data, formula, WW=TRUE) {
 #' 
 #' By default, missing values in the response are deleted.
 #'
-#' @param data Name of a data.frame
+#' Factor levels are shown along the left and bottom sides.
+#'
+#' The number of cells in each column/row is shown along the top/right sides.
+#'
+#' If the 2 factors are disconnected, the group membership ID is shown in
+#' each cell.
 #' 
-#' @param formula A formula like \code{yield ~ fx*fy}
+#' @param data A dataframe
+#' 
+#' @param formula A formula with two (or more) factor names in the dataframe
+#' like \code{yield ~ f1 *f2}
 #' 
 #' @param fun.aggregate The function to use for aggregating data in cells. Default is mean.
-#' 
-#' @param na.rm Should NA values be removed? Default is TRUE.
 #' 
 #' @param xlab Label for x axis
 #' 
@@ -109,16 +105,18 @@ con_check <- function(data, formula, WW=TRUE) {
 #' 
 #' @param col.regions Function for color regions. Default RedGrayBlue.
 #'
-#' @param cluster If "incidence", cluster rows and columns by the incidence matrix.
+#' @param cluster If "incidence", cluster rows and columns by the
+#' incidence matrix. If FALSE, no clustering is performed.
 #'
 #' @param dropNA If TRUE, observed data that are `NA` will be dropped.
 #' 
-#' @param ... Other parameters.
+#' @param ... Other parameters passed to the levelplot() function.
 #' 
 #' @author Kevin Wright
 #'
-#' @examples
+#' @return A lattice graphics object
 #' 
+#' @examples
 #' require(lattice)
 #' bar = transform(lattice::barley, env=factor(paste(site,year)))
 #' set.seed(123)
@@ -154,7 +152,7 @@ con_check <- function(data, formula, WW=TRUE) {
 #' @export
 #' 
 con_view <- function(data, formula,
-                     fun.aggregate=mean, na.rm=TRUE,
+                     fun.aggregate=mean,
                      xlab="", ylab="",
                      cex.num=0.75,
                      cex.x=0.7, cex.y=0.7,
@@ -202,7 +200,7 @@ con_view <- function(data, formula,
     f2 <- trimws(rightstar)
   }
 
-  # Drop missing values
+  # Drop rows that have missing values in response
   if(dropNA) data = data[ !is.na(data[[.resp]]), ]
 
   # Merge f1a & f1b or else f2a & f2b into a single item
@@ -243,8 +241,10 @@ con_view <- function(data, formula,
     data <- aggregate(data[.resp], by=data[c(.fx,.fy)], mean, na.rm=TRUE)
   }
 
+  #browser()
   # Identify connected sets
-  data$.grp <- lfe::compfactor(list(data[[.fx]], data[[.fy]]))
+  data$.grp <- lfe::compfactor(data[c(.fx,.fy)])
+  #data$.grp <- lfe::compfactor(list(data[[.fx]], data[[.fy]]))
   data$.grp <- as.numeric(data$.grp)
 
   # Clustering needs a matrix. We have already aggregated.
@@ -345,7 +345,7 @@ con_view <- function(data, formula,
 ## ---------------------------------------------------------------------------
 
 
-#' Filter a dataframe using two-way criteria to increase connectedness
+#' @title Filter a dataframe using two-way criteria to increase connectedness
 #'
 #' @description
 #' Traditional filtering (subsetting) of data is typically performed via
@@ -361,7 +361,8 @@ con_view <- function(data, formula,
 #' The two most useful applications of two-way filtering are to:
 #' 
 #' 1. Remove a factor level that has few interactions with another factor.
-#' This is especially useful in mixed models to remove rare factor combinations.
+#' This is especially useful in linear models to remove rare factor
+#' combinations. 
 #' 
 #' 2. Remove a factor level that has any missing interactions with another
 #' factor. This is especially useful with biplots of a matrix to remove
@@ -408,9 +409,11 @@ con_view <- function(data, formula,
 #' first, then the two-way filtering is based on the factor combinations.
 #' con_filter(dat, value ~ 2 * state / year)
 #' 
-#' @param data A dataframe.
+#' @param data A dataframe
 #' 
-#' @param formula A formula that specifies the criteria for filtering.
+#' @param formula A formula with two factor names in the dataframe
+#' that specifies the criteria for filtering,
+#' like \code{y ~ 2 * f1 / f2}
 #' 
 #' @param verbose If TRUE, print some diagnostic information about what data
 #' is being deleted. (Similar to the 'tidylog' package).
@@ -462,7 +465,7 @@ con_view <- function(data, formula,
 con_filter <- function(data, formula, verbose=TRUE, returndropped=FALSE) {
   formula <- deparse(formula)
 
-  .resp <- trimws( strsplit(formula, "~")[[1]][1] ) # left of tilde
+  .resp <- trimws( strsplit(formula, "~")[[1]][1] ) # response left of tilde
   if(.resp != "" &
        !(.resp %in% names(data))) stop(.resp, " not found in data")
   
@@ -577,9 +580,86 @@ con_filter <- function(data, formula, verbose=TRUE, returndropped=FALSE) {
 
 }
 
-con_pairs <- function(data, formula, cluster=TRUE){
-  # formula like: y ~ gen / env
-  return()
+## ---------------------------------------------------------------------------
+
+#' @title View concurrence of two factors in a dataframe using a matrix plot.
+#'
+#' @description Draws a concurrence plot of 2 factors in a dataframe.
+#' For example, in a multi-environment yield trial (testing multiple crop
+#' varieties in multple environments) it is interesting to examine the
+#' balance of the testing pattern.
+#' For each pair of environments, how many genotypes are tested
+#' in both environments? The concurrence plot shows the amount of
+#' connectedness (number of varieties) of the environments with each other.
+#'
+#' By default, missing values in the response are deleted.
+#' 
+#' Replicated combinations of the two factors are ignored.
+#' (This could be changed if someone has a need.)
+#'
+#' @param data A dataframe
+#' 
+#' @param formula A formula with multiple factor names in the dataframe,
+#' like \code{y ~ f1 / f2}.
+#' 
+#' @param dropNA If TRUE, observed data that are `NA` will be dropped.
+#' 
+#' @param xlab Label for x axis
+#' 
+#' @param ylab Label for y axis
+#' 
+#' @param cex.x Scale factor for x axis tick labels.  Default 0.7.
+#' 
+#' @param cex.y Scale factor for y axis tick labels  Default 0.7.
+#' 
+#' @param ... Other parameters passed to the levelplot() function.
+#' 
+#' @return A lattice graphics object
+#' 
+#' @author Kevin Wright
+#' 
+#' @examples 
+#' require(lattice)
+#' bar = transform(lattice::barley, env=factor(paste(site,year)))
+#' set.seed(123)
+#' bar <- bar[sample(1:nrow(bar), 70, replace=TRUE),]
+#' con_concur(bar, yield ~ variety / env, cex.x=0.75, cex.y=.3)
+#'
+#' @references 
+#' None
+#' @export 
+con_concur <- function(data, formula,
+                       dropNA=TRUE,
+                       xlab="", ylab="", cex.x=.7, cex.y = 0.7, ...){
+
+  # Check that the formula has valid names (in the data)
+  if(any(c('.resp','.fx','.fy') %in% names(data)))
+    stop(".resp, .fx, .fy are reserved names")
+
+  formula <- deparse(formula)
+  .resp <- trimws( strsplit(formula, "~")[[1]][1] ) # left of tilde
+  rhs <- strsplit(formula, "~")[[1]][2] # right of tilde
+  leftslash <- strsplit(rhs, "\\/")[[1]][1]
+  rightslash <- strsplit(rhs, "\\/")[[1]][2]
+  if(is.na(leftslash) | is.na(rightslash) )
+    stop("Incorrect formula")
+
+  .fx <- trimws(leftslash)
+  .fy <- trimws(rightslash)
+
+  # If there is a response, drop rows that have missing values in response
+  if(.resp != "" & dropNA) data = data[ !is.na(data[[.resp]]), ]
+
+  if(missing(xlab)) xlab <- paste0("Number of concurrent ", .fx, " per ", .fy)
+  # Need unique() in case there are multiple observations
+  dat2 <- unique(data[c(.fx,.fy)])
+  # Add indicator, convert to incidence matrix
+  dat2 <- cbind(dat2, ind=1)
+  dat2 <- acast(dat2, paste(.fx,"~",.fy), value.var="ind", fill=0)
+  dat2 <- crossprod(dat2)
+  levelplot(dat2, scales=list(x=list(cex=cex.x, rot=90), y=list(cex=cex.y)),
+            xlab=xlab, ylab=ylab,
+            ...)
 }
 
 ## ---------------------------------------------------------------------------
@@ -660,3 +740,4 @@ if(FALSE){
 
 
 }
+

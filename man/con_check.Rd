@@ -4,14 +4,17 @@
 \alias{con_check}
 \title{Check connectedness of multiple factors in a dataframe}
 \usage{
-con_check(data, formula, WW = TRUE)
+con_check(data = NULL, formula = NULL, WW = TRUE, dropNA = TRUE)
 }
 \arguments{
 \item{data}{A dataframe}
 
-\item{formula}{A formula with multiple factor names in the dataframe.}
+\item{formula}{A formula with multiple factor names in the dataframe,
+like \code{y ~ f1 + f2 + f3}}
 
-\item{WW}{Pass-through argument to \code{compfactor}.}
+\item{WW}{Pass-through argument to \code{compfactor}}
+
+\item{dropNA}{If TRUE, observed data that are \code{NA} will be dropped.}
 }
 \value{
 A vector with integers representing the group membership of each observation.
@@ -20,18 +23,16 @@ A vector with integers representing the group membership of each observation.
 Multiple factors in a dataframe are said to be connected if a model matrix
 based on those factors is full rank.
 
-This function provides a formula interface to the lfe::compfactor function
-to check for connectedness.
+This function provides a formula interface to the lfe::compfactor() function
+to check for connectedness of the factors.
 }
 \examples{
-\dontrun{
 # In the data_eccleston dataframe, each pair of factors is connected.
 con_check(data_eccleston, ~ row + trt)
 con_check(data_eccleston, ~ col + trt)
 con_check(data_eccleston, ~ row + col)
 # But all three factors are COMPLETELY disconnected into 16 groups.
 con_check(data_eccleston, ~ row + col + trt)
-}
 
 }
 \references{

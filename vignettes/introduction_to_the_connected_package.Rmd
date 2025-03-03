@@ -25,6 +25,7 @@ The `connected` package arose from our experience analyzing data with linear mod
 The main functions in the `connected` package are:
 
 * `con_check()`
+* `con_concur()`
 * `con_view()`
 * `con_filter()`
 
@@ -63,6 +64,14 @@ The `con_view()` function does the following:
 
 This graphical view shows us that herds `H1` and `H3` have no levels of the genotype factor that are in common with herds `H2` and `H4`, so it makes sense that not all herd effects will be estimable.
 
+Another way to examine connectedness is to calculate a 'concurrence' matrix and plot that:
+
+```{r}
+#| fig.height: 4
+#| fig.width: 4
+con_concur(data_fernando, y ~ gen/herd, main="data_fernando")
+```
+
 # Checking multi-way connectedness with `con_check()`
 
 The two-way heatmaps in the previous section are very useful to understand connectedness of two factors, but what if there are more than two factors?
@@ -89,6 +98,8 @@ The 4x4 grid is completely filled, so the row and column factors are obviously c
 
 ```{r}
 con_check(data_eccleston, ~ trt + col)
+# Here is how to add group membership to the data.  Or use cbind().
+# data_eccleston %>% mutate(.grp = con_check(. , ~trt+col))
 ```
 
 The vector of `1`s returned means that all observations of the dataframe are connected in group 1.
@@ -254,7 +265,7 @@ library(agridat)
 library(dplyr)
 
 dat0 <- agridat::minnesota.barley.yield
-if(nrow(dat0) < 2083) stop("Please upgrade the agridat package.")
+if(nrow(dat0) < 2083) stop("Please update the agridat package.")
 dat0 <- mutate(dat0, gen=factor(gen), site=factor(site), year=factor(year))
 library(lme4)
 m0 <- lmer(yield ~ (1|gen) + (1|site) + (1|year) + 
@@ -262,10 +273,19 @@ m0 <- lmer(yield ~ (1|gen) + (1|site) + (1|year) +
            data=dat0)
 summary(m0)
 
-# Note, the asreml package gives the same estimates. Not shown.
+# Note, the asreml package gives the same estimates.
 # library(asreml)
 # m0a <- asreml(yield ~ 1, data=dat0, random  = ~ gen*site*year, workspace="1GB")
-# summary(m0a)$varcomp
+# lucid::lucid(summary(m0a)$varcomp)
+##               component std.error z.ratio bound %ch
+## site             42.2       29.1     1.45     P   0
+## year             38.1       15.7     2.42     P   0
+## gen              46          5.74    8.01     P   0
+## site:year        89         12.1     7.34     P   0
+## gen:site          0.826      0.55    1.5      P   0
+## gen:year          9.88       1.67    5.93     P   0
+## gen:site:year    24.6        2.32   10.6      P   0
+## units!R           2.66       1.88    1.41     P   0
 ```
 
 This analysis runs without any obvious problems and may be perfectly acceptable, but keeping in mind the comments about connectedness above, we may want to remove some of the data through two-way filtering.
@@ -284,6 +304,7 @@ From 1893 through 1917, barley testing only happened at the St. Paul site (near 
 
 ```{r}
 # Require 2 sites per year
+dat2 <- filter(dat1, !is.na(yield), n_distinct(site) >= 2, .by=year)
 dat1 <- con_filter(dat1, yield ~ 2*site/year)
 con_view(dat1, yield~gen*year, cluster=FALSE,
          xlab="genotype", ylab="year")
@@ -293,6 +314,7 @@ Looking across the top, there are some `1`s that tell us some genotypes were tes
 
 ```{r}
 # Require 2 year per gen
+dat2 <- filter(dat2, n_distinct(year) >= 2, .by=gen)
 dat1 <- con_filter(dat1, yield~ 2*year/gen)
 con_view(dat1, yield~gen*year, cluster=FALSE, xlab="gen", ylab="year")
 ```
@@ -307,6 +329,7 @@ Again looking at the numbers across the top axis, some genotypes are tested in o
 
 ```{r}
 # Drop genotypes tested in only 1 site
+dat2 <- filter(dat2, n_distinct(site) >= 2, .by=gen)
 dat1 <- con_filter(dat1, yield~ 2*site/gen)
 con_view(dat1, yield~gen*site, cluster=FALSE, xlab="genotype", ylab="site")
 ```
@@ -336,6 +359,7 @@ The `lmer` function fails to converge, but the variance components look reasonab
 
 ```{r}
 # Require at least 3 year per genotype
+dat3 <- filter(dat1, n_distinct(year) >= 3, .by=gen)
 dat2 <- con_filter(dat1, yield ~ 3*year / gen)
 m2 <- lmer(yield ~ (1|gen) + (1|site) + (1|year) +
              (1|gen:site) + (1|gen:year) + (1|site:year) + (1|gen:site:year),

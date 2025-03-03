@@ -7,9 +7,11 @@
 con_filter(data, formula, verbose = TRUE, returndropped = FALSE)
 }
 \arguments{
-\item{data}{A dataframe.}
+\item{data}{A dataframe}
 
-\item{formula}{A formula that specifies the criteria for filtering.}
+\item{formula}{A formula with two factor names in the dataframe
+that specifies the criteria for filtering,
+like \code{y ~ 2 * f1 / f2}}
 
 \item{verbose}{If TRUE, print some diagnostic information about what data
 is being deleted. (Similar to the 'tidylog' package).}
@@ -34,7 +36,8 @@ there are too many missing cells in a row (or column).
 The two most useful applications of two-way filtering are to:
 \enumerate{
 \item Remove a factor level that has few interactions with another factor.
-This is especially useful in mixed models to remove rare factor combinations.
+This is especially useful in linear models to remove rare factor
+combinations.
 \item Remove a factor level that has any missing interactions with another
 factor. This is especially useful with biplots of a matrix to remove
 rows or columns that have missing values.

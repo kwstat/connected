@@ -27,3 +27,13 @@ test_that("con_filter", {
                     state=c("S1","S2","S3","S4", "S1","S2","S4", "S1"))
   expect_warning( con_filter(tab, ~ 2 * state / gen) )
   })
+
+test_that("con_concur", {
+  require(lattice)
+  bar = transform(lattice::barley, env=factor(paste(site,year)))
+  set.seed(123)
+  bar <- bar[sample(1:nrow(bar), 70, replace=TRUE),]
+  expect_silent(
+    con_concur(bar, yield ~ variety / env, cex.x=0.75, cex.y=.3)
+  )
+})
