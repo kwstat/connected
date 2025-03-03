@@ -1,18 +1,18 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://kwstat.github.io/connected/404.html</loc></url>
-<url><loc>https://kwstat.github.io/connected/LICENSE-text.html</loc></url>
-<url><loc>https://kwstat.github.io/connected/LICENSE.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/articles/index.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/articles/introduction_to_the_connected_package.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/authors.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/index.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/news/index.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/con_check.html</loc></url>
+<url><loc>https://kwstat.github.io/connected/reference/con_concur.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/con_filter.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/con_view.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/data_eccleston.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/data_fernando.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/data_searle.html</loc></url>
+<url><loc>https://kwstat.github.io/connected/reference/data_student.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/data_tosh.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/data_weeks1.html</loc></url>
 <url><loc>https://kwstat.github.io/connected/reference/data_weeks2.html</loc></url>

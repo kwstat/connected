@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">connected</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/kwstat/connected/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -64,9 +65,14 @@
 <div class="section level2">
 <h2 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h2>
+<p>Consistent function design:</p>
 <ul>
-<li>Simple to use.</li>
+<li>con_check(data, y ~ A + B) - Identify connected groups of factors.</li>
+<li>con_concur(data, y ~ A / B) - Plot concurrence matrix of two factors.</li>
+<li>con_filter(data, y ~ 2 * A / B) - Perform 2-factor filtering of data. Provide verbose output (similar to tidylog package).</li>
+<li>con_view(data, y ~ A + B) - View 2-way heatmap of factors, identify connected groups.</li>
 </ul>
+<p>If there are missing values in the response variable <code>y</code>, the observations with missing values are deleted.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -82,74 +88,89 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>Check connectedness of multiple factors in a dataframe:</p>
+<ol style="list-style-type: decimal">
+<li>Check connectedness of multiple factors in a dataframe:</li>
+</ol>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/connected/">connected</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># The 'row' and 'col' factors ARE connected in one group</span></span>
-<span><span class="fu"><a href="reference/con_check.html">con_check</a></span><span class="op">(</span><span class="va">data_eccleston</span>, <span class="op">~</span> <span class="va">row</span> <span class="op">+</span> <span class="va">col</span><span class="op">)</span></span>
-<span><span class="co">#  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</span></span>
-<span></span>
-<span><span class="co"># But all three factors are COMPLETELY disconnected into 16 groups.</span></span>
-<span><span class="fu"><a href="reference/con_check.html">con_check</a></span><span class="op">(</span><span class="va">data_eccleston</span>, <span class="op">~</span> <span class="va">row</span> <span class="op">+</span> <span class="va">col</span> <span class="op">+</span> <span class="va">trt</span><span class="op">)</span></span>
-<span><span class="co">#  [1] 16 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15</span></span></code></pre></div>
-<p>Visualize connectedness of two factors. The cells with “1” and the cells with “2” are two disjoint groups.</p>
+<span><span class="co"># The 'class' and 'student' factors are disconnected in 2 groups</span></span>
+<span><span class="va">R</span><span class="op">&gt;</span> <span class="fu"><a href="reference/con_check.html">con_check</a></span><span class="op">(</span><span class="va">data_student</span>, <span class="va">test1</span> <span class="op">~</span> <span class="va">class</span> <span class="op">+</span> <span class="va">student</span><span class="op">)</span></span>
+<span><span class="co"># [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Visualize connectedness of two factors. The cells with “1” and the cells with “2” are two disjoint groups.</li>
+</ol>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/connected/">connected</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">data_fernando</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">data_fernando</span>, </span>
-<span>                           y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data_fernando</span><span class="op">)</span>,mean<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">data_fernando</span>, <span class="va">y</span> <span class="op">~</span> <span class="va">gen</span> <span class="op">*</span> <span class="va">herd</span>, main<span class="op">=</span><span class="st">"data_fernando"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">data_student</span>, <span class="va">test1</span><span class="op">~</span><span class="va">student</span><span class="op">*</span><span class="va">class</span>, main<span class="op">=</span><span class="st">"test1"</span>, xlab<span class="op">=</span><span class="st">"student"</span>, ylab<span class="op">=</span><span class="st">"class"</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
-<img src="reference/figures/data_fernando_view.png" alt="data_fernando"><div class="figcaption">data_fernando</div>
+<img src="reference/figures/data_student_view.png" alt="data_student"><div class="figcaption">data_student</div>
 </div>
-<p>Improve connectedness of two factors with two-way filtering</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">library</span>(connected)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>tab <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">gen=</span><span class="fu">c</span>(<span class="st">"G1"</span>,<span class="st">"G1"</span>,<span class="st">"G1"</span>,<span class="st">"G1"</span>, <span class="st">"G2"</span>,<span class="st">"G2"</span>,<span class="st">"G2"</span>, <span class="st">"G3"</span>),</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>                  <span class="at">state=</span><span class="fu">c</span>(<span class="st">"S1"</span>,<span class="st">"S2"</span>,<span class="st">"S3"</span>,<span class="st">"S4"</span>, <span class="st">"S1"</span>,<span class="st">"S2"</span>,<span class="st">"S4"</span>, <span class="st">"S1"</span>))</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>                    gen state</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>tab</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co"># 1  G1    S1</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># 2  G1    S2</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co"># 3  G1    S3</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># 4  G1    S4</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co"># 5  G2    S1</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co"># 6  G2    S2</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co"># 7  G2    S4</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co"># 8  G3    S1</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="fu">library</span>(janitor) <span class="co"># For tabyl</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>tab <span class="sc">%&gt;%</span> <span class="fu">tabyl</span>(state,gen)</span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co"># state G1 G2 G3</span></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#    S1  1  1  1</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#    S2  1  1  0</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#    S3  1  0  0</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#    S4  1  1  0</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a></span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co"># Now subset the data. Keep only states that have at least 2 genotypes.</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co"># Read this as "2 state per gen"</span></span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>tab2 <span class="ot">&lt;-</span> <span class="fu">con_filter</span>(tab, <span class="sc">~</span> <span class="dv">2</span> <span class="sc">*</span> state <span class="sc">/</span> gen)</span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co"># Dropping these 1 of 3 levels of gen:</span></span>
-<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co"># [1] "G3"</span></span>
-<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co"># Deleted 1 of 8 rows of data.</span></span>
-<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co"># Warning message:</span></span>
-<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co"># In con_filter(tab, ~2 * state/gen) : Some state have only 1 gen.</span></span>
-<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a></span>
-<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a>tab2 <span class="sc">%&gt;%</span> <span class="fu">tabyl</span>(state,gen)</span>
-<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a><span class="co"># state G1 G2</span></span>
-<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a><span class="co">#    S1  1  1</span></span>
-<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a><span class="co">#    S2  1  1</span></span>
-<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a><span class="co">#    S3  1  0</span></span>
-<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co">#    S4  1  1</span></span></code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li>Improve connectedness of two factors with two-way filtering</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/connected/">connected</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sfirke/janitor" class="external-link">janitor</a></span><span class="op">)</span> <span class="co"># For tabyl</span></span>
+<span></span>
+<span><span class="va">data_student</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://sfirke.github.io/janitor/reference/tabyl.html" class="external-link">tabyl</a></span><span class="op">(</span><span class="va">student</span>,<span class="va">class</span><span class="op">)</span></span>
+<span><span class="co"># student art chem hort math phys weld</span></span>
+<span><span class="co">#       A   1    1    0    1    1    0</span></span>
+<span><span class="co">#       B   2    1    0    1    1    0</span></span>
+<span><span class="co">#       C   1    1    0    1    1    0</span></span>
+<span><span class="co">#       D   1    1    0    1    1    0</span></span>
+<span><span class="co">#       E   1    0    0    0    0    0</span></span>
+<span><span class="co">#       F   0    1    0    1    1    0</span></span>
+<span><span class="co">#       G   0    1    0    1    1    0</span></span>
+<span><span class="co">#       H   0    1    0    1    1    0</span></span>
+<span><span class="co">#       I   0    1    0    1    1    0</span></span>
+<span><span class="co">#       J   1    1    0    0    1    0</span></span>
+<span><span class="co">#       K   1    1    0    1    1    0</span></span>
+<span><span class="co">#       L   0    0    1    0    0    1</span></span>
+<span><span class="co">#       M   0    0    1    0    0    1</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">data_student</span>, <span class="va">test1</span> <span class="op">~</span> <span class="fl">7</span><span class="op">*</span><span class="va">student</span><span class="op">/</span><span class="va">class</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://sfirke.github.io/janitor/reference/tabyl.html" class="external-link">tabyl</a></span><span class="op">(</span><span class="va">student</span>,<span class="va">class</span><span class="op">)</span></span>
+<span><span class="co"># Dropping these 3 of 6 levels of class:</span></span>
+<span><span class="co"># [1] "art"  "hort" "weld"</span></span>
+<span><span class="co"># Deleted 11 of 35 rows of data.</span></span>
+<span><span class="co"># student chem math phys</span></span>
+<span><span class="co">#       A    1    1    1</span></span>
+<span><span class="co">#       B    1    1    1</span></span>
+<span><span class="co">#       C    1    1    1</span></span>
+<span><span class="co">#       F    1    1    1</span></span>
+<span><span class="co">#       G    1    1    1</span></span>
+<span><span class="co">#       H    1    1    1</span></span>
+<span><span class="co">#       I    1    1    1</span></span>
+<span><span class="co">#       J    1    0    1</span></span>
+<span><span class="co">#       K    0    1    0</span></span>
+<span><span class="co"># Warning message:</span></span>
+<span><span class="co"># In con_filter(data_student, test1 ~ 7 * student/class) :</span></span>
+<span><span class="co">#   Some student have only 1 class.</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li>View a concurrence matrix of two factors</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Number of concurrent students for each pair of classes</span></span>
+<span><span class="fu"><a href="reference/con_concur.html">con_concur</a></span><span class="op">(</span><span class="va">data_student</span>, <span class="va">test1</span> <span class="op">~</span> <span class="va">student</span><span class="op">/</span> <span class="va">class</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="reference/figures/data_student_concur.png" style="width:5in" alt="data_student"><div class="figcaption">data_student</div>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+</div>
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/kwstat/connected/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/kwstat/connected/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="LICENSE.html">Full license</a></li>
-<li><small>GPL (&gt;= 3) + file <a href="LICENSE-text.html">LICENSE</a></small></li>
+<li>GPL (&gt;= 2)</li>
 </ul>
 </div>
 

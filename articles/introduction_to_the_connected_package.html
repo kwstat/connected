@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">connected</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/kwstat/connected/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -59,7 +60,7 @@
 Wright</h4>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/kwstat/connected/blob/main/vignettes/introduction_to_the_connected_package.Rmd" class="external-link"><code>vignettes/introduction_to_the_connected_package.Rmd</code></a></small>
       <div class="d-none name"><code>introduction_to_the_connected_package.Rmd</code></div>
     </div>
 
@@ -76,6 +77,7 @@ data was not connected or else was weakly connected.</p>
 <p>The main functions in the <code>connected</code> package are:</p>
 <ul>
 <li><code><a href="../reference/con_check.html">con_check()</a></code></li>
+<li><code><a href="../reference/con_concur.html">con_concur()</a></code></li>
 <li><code><a href="../reference/con_view.html">con_view()</a></code></li>
 <li><code><a href="../reference/con_filter.html">con_filter()</a></code></li>
 </ul>
@@ -144,6 +146,11 @@ identified with a number.</li>
 <code>H3</code> have no levels of the genotype factor that are in common
 with herds <code>H2</code> and <code>H4</code>, so it makes sense that
 not all herd effects will be estimable.</p>
+<p>Another way to examine connectedness is to calculate a ‘concurrence’
+matrix and plot that:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/con_concur.html">con_concur</a></span><span class="op">(</span><span class="va">data_fernando</span>, <span class="va">y</span> <span class="op">~</span> <span class="va">gen</span><span class="op">/</span><span class="va">herd</span>, main<span class="op">=</span><span class="st">"data_fernando"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-4-1.png" width="384" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="checking-multi-way-connectedness-with-con_check">Checking multi-way connectedness with <code>con_check()</code><a class="anchor" aria-label="anchor" href="#checking-multi-way-connectedness-with-con_check"></a>
@@ -154,7 +161,7 @@ two factors?</p>
 <p>Here is a small example dataset from Eccleston and Russell (1975)
 with three factors that can represent a 4x4 row-column experiment with a
 treatment for each cell.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_eccleston</span></span>
 <span><span class="co">#&gt;    row col trt</span></span>
 <span><span class="co">#&gt; 1    1   1  A1</span></span>
@@ -177,7 +184,7 @@ treatment for each cell.</p>
 have been used in previously-published scientific papers. Each treatment
 letter corresponds with one number and vice versa. Re-arranging the
 treatments into the field layout of rows and columns is useful:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## library(reshape2)</span></span>
 <span><span class="co">## acast(data_eccleston, row~col, value.var='trt')</span></span>
 <span><span class="co">##    1  2  3  4 </span></span>
@@ -193,27 +200,29 @@ connects columns 3 &amp; 2, <code>D4</code> connects columns 2 &amp; 4,
 and <code>C3</code> connects columns 4 &amp; 1. The connection of
 treatments and columns can be checked formally with the
 <code><a href="../reference/con_check.html">con_check()</a></code> function:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_check.html">con_check</a></span><span class="op">(</span><span class="va">data_eccleston</span>, <span class="op">~</span> <span class="va">trt</span> <span class="op">+</span> <span class="va">col</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</span></span>
-<span><span class="co">#&gt; Levels: 1</span></span></code></pre></div>
+<span><span class="co">#&gt; Levels: 1</span></span>
+<span><span class="co"># Here is how to add group membership to the data.  Or use cbind().</span></span>
+<span><span class="co"># data_eccleston %&gt;% mutate(.grp = con_check(. , ~trt+col))</span></span></code></pre></div>
 <p>The vector of <code>1</code>s returned means that all observations of
 the dataframe are connected in group 1.</p>
 <p>Similarly, the rows are also connected via the treatments.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_check.html">con_check</a></span><span class="op">(</span><span class="va">data_eccleston</span>, <span class="op">~</span> <span class="va">trt</span> <span class="op">+</span> <span class="va">row</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</span></span>
 <span><span class="co">#&gt; Levels: 1</span></span></code></pre></div>
 <p>However, if all 3 factors are considered at the same time, they are
 completely disconnected with each observation belonging to a separate
 group.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_check.html">con_check</a></span><span class="op">(</span><span class="va">data_eccleston</span>, <span class="op">~</span> <span class="va">trt</span> <span class="op">+</span> <span class="va">row</span> <span class="op">+</span> <span class="va">col</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] 16 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15</span></span>
 <span><span class="co">#&gt; Levels: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16</span></span></code></pre></div>
 <p>If we attempted to fit a linear model using all 3 factors as
 predictors, there would be problems with estimability.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">data_eccleston</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">data_eccleston</span>,</span>
 <span>                            y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data_eccleston</span><span class="op">)</span>, mean<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
@@ -233,7 +242,7 @@ predictors, there would be problems with estimability.</p>
 <p>Another way to examine the stability of the model is to look at the
 reciprocal condition number of the model matrix, which is less than the
 machine precision, so it is numerically singular.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/rcond-methods.html" class="external-link">rcond</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1.311474e-17</span></span>
@@ -250,7 +259,7 @@ might want to remove those weak connections.</p>
 </h3>
 <p>We construct a small example and use the <code>tabyl</code> function
 to display the data in a two-way table.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>gen<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>,<span class="st">"G1"</span>,<span class="st">"G1"</span>,<span class="st">"G1"</span>, <span class="st">"G2"</span>,<span class="st">"G2"</span>,<span class="st">"G2"</span>, <span class="st">"G3"</span><span class="op">)</span>,</span>
 <span>                  state<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"S1"</span>,<span class="st">"S2"</span>,<span class="st">"S3"</span>,<span class="st">"S4"</span>, <span class="st">"S1"</span>,<span class="st">"S2"</span>,<span class="st">"S4"</span>, <span class="st">"S1"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sfirke/janitor" class="external-link">janitor</a></span><span class="op">)</span> <span class="co"># For tabyl</span></span>
@@ -270,7 +279,7 @@ factor level <code>G3</code> has only 1 cell connecting to the
 <code>state</code> factor. We might want to eliminate the column with
 genotype <code>G3</code>. The ordinary way to do this would be to use
 one of these approaches:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">tab</span>, <span class="va">gen</span> <span class="op">!=</span> <span class="st">"G3"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/tabyl.html" class="external-link">tabyl</a></span><span class="op">(</span><span class="va">state</span>,<span class="va">gen</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  state G1 G2</span></span>
 <span><span class="co">#&gt;     S1  1  1</span></span>
@@ -290,7 +299,7 @@ a threshold for the minimum number of connections between two factors.
 For example, we might decide to only keep a level of <code>gen</code> if
 it appears in at least 2 <code>state</code>s. We use a formula syntax
 for this.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Read this as "2 state per gen"</span></span>
 <span><span class="va">tab2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">tab</span>, <span class="op">~</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">state</span> <span class="op">/</span> <span class="va">gen</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 1 of 3 levels of gen:</span></span>
@@ -308,7 +317,7 @@ diagnostic information.</p>
 <p>After the filtering, notice that <code>state</code> <code>S3</code>
 only appears once and we decide that we only want to keep an individual
 <code>state</code> if it has at least 2 <code>gen</code>.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">tab2</span>, <span class="op">~</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">gen</span> <span class="op">/</span> <span class="va">state</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/tabyl.html" class="external-link">tabyl</a></span><span class="op">(</span><span class="va">state</span>, <span class="va">gen</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 1 of 4 levels of state:</span></span>
 <span><span class="co">#&gt; [1] "S3"</span></span>
@@ -325,7 +334,7 @@ only appears once and we decide that we only want to keep an individual
 Square experiment with 8 rows, 8 columns, and 8 treatments. Suppose that
 during the experiment, half of the response variable data was lost. We
 simulate that:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span>  <span class="va">orch</span> <span class="op">&lt;-</span> <span class="va">OrchardSprays</span></span>
 <span>  <span class="va">orch</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">orch</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">.5</span> , <span class="st">"decrease"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
@@ -340,7 +349,7 @@ simulate that:</p>
 <p>In order to visualize the combinations of rows and columns that still
 have data, we have to remove the missing observations before
 constructing a table of cell counts:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">orch</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">decrease</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/tabyl.html" class="external-link">tabyl</a></span><span class="op">(</span><span class="va">rowpos</span>, <span class="va">colpos</span><span class="op">)</span> </span>
 <span><span class="co">#&gt;  rowpos 1 2 3 4 5 6 7 8</span></span>
 <span><span class="co">#&gt;       1 0 0 0 1 1 1 0 0</span></span>
@@ -356,7 +365,7 @@ variable. If the response variable is specified, the data is first
 filtered to remove missing values in the response, and then the two-way
 filtering is performed. Suppose we want to have at least 2 observed
 values of <code>decrease</code> in each row and column</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Read: decrease has at least 2 colpos per rowps</span></span>
 <span><span class="va">orch2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">orch</span>, <span class="va">decrease</span> <span class="op">~</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">colpos</span> <span class="op">/</span> <span class="va">rowpos</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 2 of 8 levels of rowpos:</span></span>
@@ -395,7 +404,7 @@ values of <code>decrease</code> in each row and column</p>
 filtering. Consider the following example with factor for genotype
 <code>gen</code>, <code>state</code>, and <code>year</code>. We simulate
 some random response data.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/connected/">connected</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sfirke/janitor" class="external-link">janitor</a></span><span class="op">)</span></span>
 <span><span class="va">test1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"IA"</span>, <span class="st">"2020"</span>, <span class="co"># gen has 1 state, 1 yr,</span></span>
@@ -438,7 +447,7 @@ combine the <code>state:year</code> interaction into a single factor and
 then count the number <code>gen</code>otypes in that new factor. The
 <code><a href="../reference/con_filter.html">con_filter()</a></code> function can perform this concatenation of two
 factors automatically using the <code>:</code> operator.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">test1</span>, <span class="va">y</span> <span class="op">~</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">gen</span> <span class="op">/</span> <span class="va">state</span><span class="op">:</span><span class="va">year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span>stateyr<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">state</span>,<span class="st">"_"</span>,<span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://sfirke.github.io/janitor/reference/tabyl.html" class="external-link">tabyl</a></span><span class="op">(</span><span class="va">gen</span>,<span class="va">stateyr</span><span class="op">)</span></span>
@@ -461,7 +470,7 @@ the new <code>state:year</code> factor and that each column has at least
 2 <code>gen</code>otypes, which is what we asked for.</p>
 <p>If we ever want to see what data is dropped during the filtering
 process, the <code>returndropped=TRUE</code> argument can be used.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">test1</span>, <span class="va">y</span> <span class="op">~</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">gen</span> <span class="op">/</span> <span class="va">state</span><span class="op">:</span><span class="va">year</span>, returndropped<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 10 of 13 levels of state:year:</span></span>
 <span><span class="co">#&gt;  [1] "AR2019" "GA2011" "IA2021" "IN2018" "KS2020" "MD2010" "MO2020" "MO2021"</span></span>
@@ -509,7 +518,7 @@ different genotypes. There are 69090 combinations of the 3 factors, but
 only 2083 combinations have yield values, so there is a great deal of
 sparsity in the data. Nonetheless, we can jump right in and try to fit a
 full mixed model with all combinations of the factors.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/agridat/" class="external-link">agridat</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -522,7 +531,7 @@ full mixed model with all combinations of the factors.</p>
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span></span>
 <span><span class="va">dat0</span> <span class="op">&lt;-</span> <span class="fu">agridat</span><span class="fu">::</span><span class="va"><a href="https://kwstat.github.io/agridat/reference/minnesota.barley.yield.html" class="external-link">minnesota.barley.yield</a></span></span>
-<span><span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat0</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">2083</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Please upgrade the agridat package."</span><span class="op">)</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat0</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">2083</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Please update the agridat package."</span><span class="op">)</span></span>
 <span><span class="va">dat0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">dat0</span>, gen<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">gen</span><span class="op">)</span>, site<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>, year<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lme4/lme4/" class="external-link">lme4</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: Matrix</span></span>
@@ -558,28 +567,38 @@ full mixed model with all combinations of the factors.</p>
 <span><span class="co">#&gt;             Estimate Std. Error t value</span></span>
 <span><span class="co">#&gt; (Intercept)   34.691      3.047   11.38</span></span>
 <span></span>
-<span><span class="co"># Note, the asreml package gives the same estimates. Not shown.</span></span>
+<span><span class="co"># Note, the asreml package gives the same estimates.</span></span>
 <span><span class="co"># library(asreml)</span></span>
 <span><span class="co"># m0a &lt;- asreml(yield ~ 1, data=dat0, random  = ~ gen*site*year, workspace="1GB")</span></span>
-<span><span class="co"># summary(m0a)$varcomp</span></span></code></pre></div>
+<span><span class="co"># lucid::lucid(summary(m0a)$varcomp)</span></span>
+<span><span class="co">##               component std.error z.ratio bound %ch</span></span>
+<span><span class="co">## site             42.2       29.1     1.45     P   0</span></span>
+<span><span class="co">## year             38.1       15.7     2.42     P   0</span></span>
+<span><span class="co">## gen              46          5.74    8.01     P   0</span></span>
+<span><span class="co">## site:year        89         12.1     7.34     P   0</span></span>
+<span><span class="co">## gen:site          0.826      0.55    1.5      P   0</span></span>
+<span><span class="co">## gen:year          9.88       1.67    5.93     P   0</span></span>
+<span><span class="co">## gen:site:year    24.6        2.32   10.6      P   0</span></span>
+<span><span class="co">## units!R           2.66       1.88    1.41     P   0</span></span></code></pre></div>
 <p>This analysis runs without any obvious problems and may be perfectly
 acceptable, but keeping in mind the comments about connectedness above,
 we may want to remove some of the data through two-way filtering.</p>
 <p>First, start with a two-way visualization of the sites and years.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the original data in dat0 and pruned data in dat1</span></span>
 <span><span class="va">dat1</span> <span class="op">&lt;-</span> <span class="va">dat0</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span><span class="va">site</span><span class="op">*</span><span class="va">year</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>,</span>
 <span>         xlab<span class="op">=</span><span class="st">"site"</span>, ylab<span class="op">=</span><span class="st">"year"</span>, main<span class="op">=</span><span class="st">"Minnesota Barley"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-22-1.png" width="576" style="display: block; margin: auto;"></p>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-23-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>From 1893 through 1917, barley testing only happened at the St. Paul
 site (near the University of Minnesota). Since it is not possible to
 explain how much variation there is across locations when there is only
 1 location, it makes sense to eliminate the data from those years with
 only 1 site.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Require 2 sites per year</span></span>
+<span><span class="va">dat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">yield</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span>, .by<span class="op">=</span><span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">dat1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="fl">2</span><span class="op">*</span><span class="va">site</span><span class="op">/</span><span class="va">year</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 25 of 49 levels of year:</span></span>
 <span><span class="co">#&gt;  [1] "1893" "1894" "1895" "1896" "1897" "1898" "1899" "1900" "1901" "1902"</span></span>
@@ -588,49 +607,51 @@ only 1 site.</p>
 <span><span class="co">#&gt; Deleted 731 of 2083 rows of data.</span></span>
 <span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span><span class="va">gen</span><span class="op">*</span><span class="va">year</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>,</span>
 <span>         xlab<span class="op">=</span><span class="st">"genotype"</span>, ylab<span class="op">=</span><span class="st">"year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-23-1.png" width="576" style="display: block; margin: auto;"></p>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-24-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>Looking across the top, there are some <code>1</code>s that tell us
 some genotypes were tested in only 1 year, so those are not really
 helping to estimate variation across years and we decide to drop
 those.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Require 2 year per gen</span></span>
+<span><span class="va">dat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">dat2</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span>, .by<span class="op">=</span><span class="va">gen</span><span class="op">)</span></span>
 <span><span class="va">dat1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span> <span class="fl">2</span><span class="op">*</span><span class="va">year</span><span class="op">/</span><span class="va">gen</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 15 of 62 levels of gen:</span></span>
 <span><span class="co">#&gt;  [1] "241"  "244"  "558"  "611"  "2793" "2899" "2928" "4668" "4669" "7010"</span></span>
 <span><span class="co">#&gt; [11] "7011" "7012" "7013" "7014" "7015"</span></span>
 <span><span class="co">#&gt; Deleted 50 of 1352 rows of data.</span></span>
 <span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span><span class="va">gen</span><span class="op">*</span><span class="va">year</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"gen"</span>, ylab<span class="op">=</span><span class="st">"year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-24-1.png" width="576" style="display: block; margin: auto;"></p>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-25-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>After considering how genotypes are spread across years, we can also
 look at how genotypes are spread across sites.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span><span class="va">gen</span><span class="op">*</span><span class="va">site</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"genotype"</span>, ylab<span class="op">=</span><span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-25-1.png" width="576" style="display: block; margin: auto;"></p>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-26-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>Again looking at the numbers across the top axis, some genotypes are
 tested in only 1 site, so we drop those.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Drop genotypes tested in only 1 site</span></span>
+<span><span class="va">dat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">dat2</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span>, .by<span class="op">=</span><span class="va">gen</span><span class="op">)</span></span>
 <span><span class="va">dat1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span> <span class="fl">2</span><span class="op">*</span><span class="va">site</span><span class="op">/</span><span class="va">gen</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 10 of 47 levels of gen:</span></span>
 <span><span class="co">#&gt;  [1] "531"  "835"  "912"  "915"  "923"  "1145" "2947" "3144" "4115" "4116"</span></span>
 <span><span class="co">#&gt; Deleted 25 of 1302 rows of data.</span></span>
 <span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span><span class="op">~</span><span class="va">gen</span><span class="op">*</span><span class="va">site</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"genotype"</span>, ylab<span class="op">=</span><span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-26-1.png" width="576" style="display: block; margin: auto;"></p>
-<p>We check the connectedness of each pair of factors.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="va">gen</span><span class="op">*</span><span class="va">site</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"gen"</span>, ylab<span class="op">=</span><span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-27-1.png" width="576" style="display: block; margin: auto;"></p>
+<p>We check the connectedness of each pair of factors.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="va">gen</span><span class="op">*</span><span class="va">year</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"gen"</span>, ylab<span class="op">=</span><span class="st">"year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-27-2.png" width="576" style="display: block; margin: auto;"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="va">gen</span><span class="op">*</span><span class="va">site</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"gen"</span>, ylab<span class="op">=</span><span class="st">"site"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-28-1.png" width="576" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="va">gen</span><span class="op">*</span><span class="va">year</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"gen"</span>, ylab<span class="op">=</span><span class="st">"year"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-28-2.png" width="576" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="va">site</span><span class="op">*</span><span class="va">year</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, xlab<span class="op">=</span><span class="st">"site"</span>, ylab<span class="op">=</span><span class="st">"year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-27-3.png" width="576" style="display: block; margin: auto;"></p>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-28-3.png" width="576" style="display: block; margin: auto;"></p>
 <p>The connectedness of genotype and year is still a bit weak, but the
 other pairs of factors have good connections, so we try to fit the
 variance components model again.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lme4/lme4/" class="external-link">lme4</a></span><span class="op">)</span></span>
 <span><span class="va">m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/lmer.html" class="external-link">lmer</a></span><span class="op">(</span><span class="va">yield</span> <span class="op">~</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">gen</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">site</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">year</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>          <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">gen</span><span class="op">:</span><span class="va">site</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">gen</span><span class="op">:</span><span class="va">year</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">site</span><span class="op">:</span><span class="va">year</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">gen</span><span class="op">:</span><span class="va">site</span><span class="op">:</span><span class="va">year</span><span class="op">)</span>, data<span class="op">=</span><span class="va">dat1</span><span class="op">)</span></span>
@@ -675,8 +696,9 @@ criteria might be helpful, but we can also try increasing the
 connectedness of genotype and year, since we noticed that there were
 some genotypes that were tested in only 2 years. Change that to require
 a minimum of 3 years of testing:</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Require at least 3 year per genotype</span></span>
+<span><span class="va">dat3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">3</span>, .by<span class="op">=</span><span class="va">gen</span><span class="op">)</span></span>
 <span><span class="va">dat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/con_filter.html">con_filter</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="va">yield</span> <span class="op">~</span> <span class="fl">3</span><span class="op">*</span><span class="va">year</span> <span class="op">/</span> <span class="va">gen</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dropping these 3 of 37 levels of gen:</span></span>
 <span><span class="co">#&gt; [1] "1189" "1478" "5673"</span></span>
@@ -722,7 +744,7 @@ a minimum of 3 years of testing:</p>
 final model <code>m2</code> (n=1252 observations). CAUTION: The
 <code>VarCorr</code> function re-orders the terms in the output, so be
 careful combining the two tables.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/lucid/" class="external-link">lucid</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/nlme/man/VarCorr.html" class="external-link">VarCorr</a></span><span class="op">(</span><span class="va">m0</span><span class="op">)</span><span class="op">)</span>, <span class="va">grp</span>, <span class="va">vcov</span><span class="op">)</span>, </span>
 <span>           <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/nlme/man/VarCorr.html" class="external-link">VarCorr</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span><span class="op">)</span>, <span class="va">grp</span>, <span class="va">vcov</span><span class="op">)</span>, </span>
@@ -761,7 +783,7 @@ levelplot<a class="anchor" aria-label="anchor" href="#how-to-extract-the-sorted-
 </h3>
 <p>If you want to extract the sorted axis tick labels, assign the
 graphic to an object and extract the components of interest:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/connected/">connected</a></span><span class="op">)</span></span>
 <span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">data_fernando</span></span>
 <span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">dat</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -781,7 +803,7 @@ different datasets, even though the datasets might have different factor
 levels.</p>
 <p>First we create two small datasets. Note that only levels
 <code>G2</code> and <code>E2</code> are common to both datasets.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dd1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"E1"</span>,<span class="st">"E2"</span><span class="op">)</span>,<span class="fl">2</span><span class="op">)</span>,</span>
 <span>                  y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>,<span class="st">"G2"</span><span class="op">)</span>, each<span class="op">=</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>                  z1<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">1.5</span>,<span class="fl">2.5</span><span class="op">)</span><span class="op">)</span></span>
@@ -802,22 +824,22 @@ levels.</p>
 <span><span class="co">#&gt; 4 E2 G2 4.5</span></span></code></pre></div>
 <p>Next, create a reference dataframe that contains all of the factor
 levels from both <code>dd1</code> and <code>dd2</code>.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dd0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">dd1</span><span class="op">$</span><span class="va">x</span>, <span class="va">dd2</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                   y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">dd1</span><span class="op">$</span><span class="va">y</span>, <span class="va">dd2</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
 <p>Merge the trait values into this dataframe. When plotting, be sure to
 use the <code>dropNA=FALSE</code> options so that factor levels without
 trait values are kept and use <code>cluster=FALSE</code> to prevent
 re-ordering</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dd0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">dd0</span>, <span class="va">dd1</span>, by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>,<span class="st">"y"</span><span class="op">)</span>, all.x<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">dd0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">dd0</span>, <span class="va">dd2</span>, by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>,<span class="st">"y"</span><span class="op">)</span>, all.x<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kwstat.github.io/connected/">connected</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dd0</span>, <span class="va">z1</span> <span class="op">~</span> <span class="va">x</span> <span class="op">*</span> <span class="va">y</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, dropNA<span class="op">=</span><span class="cn">FALSE</span>, main<span class="op">=</span><span class="st">"dd1"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-34-1.png" width="288" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-35-1.png" width="288" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/con_view.html">con_view</a></span><span class="op">(</span><span class="va">dd0</span>, <span class="va">z2</span> <span class="op">~</span> <span class="va">x</span> <span class="op">*</span> <span class="va">y</span>, cluster<span class="op">=</span><span class="cn">FALSE</span>, dropNA<span class="op">=</span><span class="cn">FALSE</span>, main<span class="op">=</span><span class="st">"dd2"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-34-2.png" width="288" style="display: block; margin: auto;"></p>
+<p><img src="introduction_to_the_connected_package_files/figure-html/unnamed-chunk-35-2.png" width="288" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="how-to-view-the-axis-labels-andor-cell-group-numbers-when-there-are-many-levels">3. How to view the axis labels and/or cell group numbers when there
